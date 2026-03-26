@@ -1,53 +1,63 @@
-import { google } from 'googleapis';
-
-const SHEET_IDS = {
-  primaNotaId: "1ctYH5gMGfqsg3TBbvfaf8QDtC8pIRletZBuPNIalzGI",
-  prenotazioniId: "1hcbb9IK0b50aKJ_InvhgXEN4EhKIcIGDBccTTRZL918",
-  presenzeId: "160wdLfAWtJxWOzv_CRlDsTwaw2bKigLeAzjgpKA6Ydk",
-  abbonatiId: "1KnYJvzhvnip-erZU5RGexsNwTH33erP0POCfIuvy5Ic",
-  sospesiId: "1AkZ_PJ6_1vaOb5-qLyCBmyZUwf4kCqs"
-};
-
 export default async function handler(req, res) {
   try {
-    const auth = new google.auth.GoogleAuth({
-      credentials: JSON.parse(process.env.GOOGLE_CREDENTIALS || '{}'),
-      scopes: ['https://www.googleapis.com/auth/spreadsheets.readonly'],
-    });
+    // IDs dei tuoi Google Sheets
+    const SHEET_IDS = {
+      primaNotaId: "1ctYH5gMGfqsg3TBbvfaf8QDtC8pIRletZBuPNIalzGI",
+    };
 
-    const sheets = google.sheets({ version: 'v4', auth });
+    // Funzione per leggere da Google Sheets tramite CSV export
+    const fetchSheetData = async (sheetId, sheetName) => {
+      const url = `https://docs.google.com/spreadsheets/d/${sheetId}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheetName)}`;
+      
+      const response = await fetch(url);
+      if (!response.ok) throw new Error(`Errore lettura foglio: ${response.status}`);
+      
+      const csv = await response.text();
+      const lines = csv.split('\n').filter(line => line.trim());
+      
+      if (lines.length < 2) throw new Error('Foglio vuoto o non accessibile');
+      
+      const headers = lines[0].split('\t').map(h => h.trim());
+      const rows = [];
+      
+      for (let i = 1; i < lines.length; i++) {
+        if (lines[i].trim()) {
+          const values = lines[i].split('\t').map(v => v.trim());
+          const row = {};
+          headers.forEach((header, idx) => {
+            row[header] = values[idx] || '';
+          });
+          rows.push(row);
+        }
+      }
+      
+      return { headers, rows };
+    };
 
-    // Read Prima Nota (latest month)
-    const primaNotaResponse = await sheets.spreadsheets.values.get({
-      spreadsheetId: SHEET_IDS.primaNotaId,
-      range: 'FEBBRAIO 2026!A:H',
-    });
-
-    const primaNotaValues = primaNotaResponse.data.values || [];
+    // Leggi Prima Nota (FEBBRAIO 2026)
+    const primaNotaData = await fetchSheetData(SHEET_IDS.primaNotaId, 'FEBBRAIO 2026');
     
     let lavaggoEntrate = 0, lavaggoUscite = 0;
     let parcheggioEntrate = 0, parcheggioUscite = 0;
     let sospesiTot = 0;
 
     // Parse Prima Nota
-    for (let i = 1; i < primaNotaValues.length; i++) {
-      const row = primaNotaValues[i];
-      if (!row || row.length < 6) continue;
-
-      const centro = (row[1] || '').toString().toUpperCase();
-      const entrata = parseFloat((row[4] || '').toString().replace('€', '').replace(',', '.')) || 0;
-      const uscite = parseFloat((row[5] || '').toString().replace('€', '').replace(',', '.')) || 0;
-      const sospeso = parseFloat((row[7] || '').toString().replace('€', '').replace(',', '.')) || 0;
+    primaNotaData.rows.forEach(row => {
+      const centro = (row['CENTRO DI COSTO'] || '').toUpperCase();
+      const entrata = parseFloat((row['ENTRATA'] || '').toString().replace(/[€\s]/g, '').replace(',', '.')) || 0;
+      const uscite = parseFloat((row['USCITE'] || '').toString().replace(/[€\s]/g, '').replace(',', '.')) || 0;
+      const sospeso = parseFloat((row['SOSPESO'] || '').toString().replace(/[€\s]/g, '').replace(',', '.')) || 0;
 
       if (centro.includes('LAVAGGIO')) {
         lavaggoEntrate += entrata;
         lavaggoUscite += uscite;
-      } else if (centro.includes('PARCHEGGIO')) {
+      } else if (centro.includes('PARCHEGGIO') || centro.includes('ABBONAMENTO')) {
         parcheggioEntrate += entrata;
         parcheggioUscite += uscite;
       }
+      
       sospesiTot += sospeso;
-    }
+    });
 
     const entraateTot = lavaggoEntrate + parcheggioEntrate;
     const usciteTot = lavaggoUscite + parcheggioUscite;
@@ -55,19 +65,29 @@ export default async function handler(req, res) {
     const margine = entraateTot > 0 ? ((utileNetto / entraateTot) * 100).toFixed(1) : 0;
 
     const kpi = {
-      lavaggio: { entrate: lavaggoEntrate, uscite: lavaggoUscite },
-      parcheggio: { entrate: parcheggioEntrate, uscite: parcheggioUscite },
-      entraateTotale: entraateTot,
-      usciteTotale: usciteTot,
-      utileNetto: utileNetto,
+      lavaggio: { 
+        entrate: Math.round(lavaggoEntrate * 100) / 100, 
+        uscite: Math.round(lavaggoUscite * 100) / 100 
+      },
+      parcheggio: { 
+        entrate: Math.round(parcheggioEntrate * 100) / 100, 
+        uscite: Math.round(parcheggioUscite * 100) / 100 
+      },
+      entraateTotale: Math.round(entraateTot * 100) / 100,
+      usciteTotale: Math.round(usciteTot * 100) / 100,
+      utileNetto: Math.round(utileNetto * 100) / 100,
       margine: margine,
-      sospesi: sospesiTot,
-      timestamp: new Date().toLocaleString('it-IT')
+      sospesi: Math.round(sospesiTot * 100) / 100,
+      timestamp: new Date().toLocaleString('it-IT'),
+      source: 'FEBBRAIO 2026'
     };
 
     res.status(200).json(kpi);
   } catch (error) {
     console.error('API Error:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ 
+      error: error.message,
+      note: 'Assicurati che i Google Sheets siano pubblici "chiunque con il link"'
+    });
   }
 }
