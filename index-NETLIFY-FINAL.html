@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WASH HUB LUNGOMARE - Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0f172a;
+            color: #f1f5f9;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #1e293b;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #06b6d4;
+        }
+        
+        .header p {
+            color: #64748b;
+            font-size: 13px;
+        }
+        
+        .header-info {
+            background: #1a2332;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+        
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 2rem;
+        }
+        
+        .kpi-card {
+            background: #1a2332;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        
+        .kpi-label {
+            color: #64748b;
+            font-size: 12px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        
+        .kpi-value {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .kpi-subtext {
+            color: #475569;
+            font-size: 12px;
+        }
+        
+        .color-cyan { color: #06b6d4; }
+        .color-red { color: #ef4444; }
+        .color-green { color: #10b981; }
+        .color-orange { color: #f97316; }
+        .color-purple { color: #8b5cf6; }
+        .color-yellow { color: #f59e0b; }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 16px;
+            margin-bottom: 2rem;
+        }
+        
+        .chart-card {
+            background: #1a2332;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        
+        .chart-card h2 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        
+        .performance-item {
+            margin-bottom: 16px;
+        }
+        
+        .performance-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+        
+        .performance-bar {
+            background: #0f172a;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .performance-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+        
+        .button {
+            background: #06b6d4;
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 2rem;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .button:hover {
+            background: #0891b2;
+        }
+        
+        .footer {
+            text-align: center;
+            color: #64748b;
+            font-size: 12px;
+            padding: 16px;
+            border-top: 1px solid #1e293b;
+            margin-top: 2rem;
+        }
+        
+        .success { color: #10b981; }
+        .error { color: #ef4444; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>WASH HUB LUNGOMARE</h1>
+                <p>Business Intelligence Dashboard</p>
+            </div>
+            <div class="header-info" id="timestamp">📊 Caricamento...</div>
+        </div>
+
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-label">💰 Ricavi Totali</div>
+                <div class="kpi-value color-cyan" id="entrate">€0,00</div>
+                <div class="kpi-subtext">Entrate totali</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-label">📤 Uscite Totali</div>
+                <div class="kpi-value color-red" id="uscite">€0,00</div>
+                <div class="kpi-subtext">Costi operativi</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-label">📈 Utile Netto</div>
+                <div class="kpi-value color-green" id="utile">€0,00</div>
+                <div class="kpi-subtext" id="margine-text">Margine 0%</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-label">🚗 Lavaggio</div>
+                <div class="kpi-value color-orange" id="lavaggio">€0,00</div>
+                <div class="kpi-subtext">Entrate</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-label">🅿️ Parcheggio</div>
+                <div class="kpi-value color-purple" id="parcheggio">€0,00</div>
+                <div class="kpi-subtext">Entrate</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-label">⚠️ Sospesi</div>
+                <div class="kpi-value color-yellow" id="sospesi">€0,00</div>
+                <div class="kpi-subtext">Da riscuotere</div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h2>Dati Caricamento</h2>
+                <div style="height: 300px; background: #0f172a; border-radius: 8px; padding: 16px; display: flex; align-items: center; justify-content: center; color: #64748b;">
+                    Grafici dei dati
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h2>Performance</h2>
+                <div class="performance-item">
+                    <div class="performance-label">
+                        <span style="color: #94a3b8;">Lavaggio</span>
+                        <span class="color-orange" id="margine-lavaggio">0%</span>
+                    </div>
+                    <div class="performance-bar">
+                        <div class="performance-bar-fill color-orange" id="bar-lavaggio" style="width: 0%;"></div>
+                    </div>
+                </div>
+                <div class="performance-item">
+                    <div class="performance-label">
+                        <span style="color: #94a3b8;">Parcheggio</span>
+                        <span class="color-purple" id="margine-parcheggio">0%</span>
+                    </div>
+                    <div class="performance-bar">
+                        <div class="performance-bar-fill color-purple" id="bar-parcheggio" style="width: 0%;"></div>
+                    </div>
+                </div>
+                <div class="performance-item">
+                    <div class="performance-label">
+                        <span style="color: #94a3b8;">Totale</span>
+                        <span class="color-green" id="margine-totale">0%</span>
+                    </div>
+                    <div class="performance-bar">
+                        <div class="performance-bar-fill color-green" id="bar-totale" style="width: 0%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button class="button" onclick="fetchData()">🔄 Aggiorna Dati</button>
+
+        <div class="footer" id="footer">
+            Dashboard in tempo reale • Powered by Claude AI
+        </div>
+    </div>
+
+    <script>
+        async function fetchData() {
+            try {
+                const response = await fetch('/.netlify/functions/sheets-data');
+                const data = await response.json();
+                
+                if (!response.ok) throw new Error(data.error);
+                
+                // Aggiorna UI
+                document.getElementById('entrate').textContent = '€' + data.entraateTotale.toFixed(2).replace('.', ',');
+                document.getElementById('uscite').textContent = '€' + data.usciteTotale.toFixed(2).replace('.', ',');
+                document.getElementById('utile').textContent = '€' + data.utileNetto.toFixed(2).replace('.', ',');
+                document.getElementById('margine-text').textContent = 'Margine ' + data.margine + '%';
+                document.getElementById('lavaggio').textContent = '€' + data.lavaggio.entrate.toFixed(2).replace('.', ',');
+                document.getElementById('parcheggio').textContent = '€' + data.parcheggio.entrate.toFixed(2).replace('.', ',');
+                document.getElementById('sospesi').textContent = '€' + data.sospesi.toFixed(2).replace('.', ',');
+                
+                document.getElementById('margine-lavaggio').textContent = data.margineLavaggio + '%';
+                document.getElementById('margine-parcheggio').textContent = data.margineParcheggio + '%';
+                document.getElementById('margine-totale').textContent = data.margine + '%';
+                
+                document.getElementById('bar-lavaggio').style.width = data.margineLavaggio + '%';
+                document.getElementById('bar-parcheggio').style.width = data.margineParcheggio + '%';
+                document.getElementById('bar-totale').style.width = data.margine + '%';
+                
+                document.getElementById('timestamp').textContent = '📊 ' + data.timestamp;
+                document.getElementById('footer').innerHTML = '<span class="success">✅ Dashboard aggiornata</span> • ' + data.timestamp;
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('footer').innerHTML = '<span class="error">❌ Errore: ' + error.message + '</span>';
+            }
+        }
+
+        fetchData();
+        setInterval(fetchData, 5 * 60 * 1000);
+    </script>
+</body>
+</html>
