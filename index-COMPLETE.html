@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WASH HUB LUNGOMARE - Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0f172a;
+            color: #f1f5f9;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #1e293b;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #06b6d4;
+        }
+        
+        .header p {
+            color: #64748b;
+            font-size: 13px;
+        }
+        
+        .controls {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            background: #1a2332;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 12px 16px;
+        }
+        
+        .controls label {
+            color: #94a3b8;
+            font-size: 12px;
+            text-transform: uppercase;
+        }
+        
+        .controls input {
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: #f1f5f9;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+        }
+        
+        .controls button {
+            background: #06b6d4;
+            color: #000;
+            border: none;
+            padding: 6px 16px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .controls button:hover {
+            background: #0891b2;
+        }
+        
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 2rem;
+        }
+        
+        .kpi-card {
+            background: #1a2332;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        
+        .kpi-label {
+            color: #64748b;
+            font-size: 12px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+        }
+        
+        .kpi-value {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .kpi-subtext {
+            color: #475569;
+            font-size: 12px;
+        }
+        
+        .color-cyan { color: #06b6d4; }
+        .color-red { color: #ef4444; }
+        .color-green { color: #10b981; }
+        .color-orange { color: #f97316; }
+        .color-purple { color: #8b5cf6; }
+        .color-yellow { color: #f59e0b; }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 16px;
+            margin-bottom: 2rem;
+        }
+        
+        .chart-card {
+            background: #1a2332;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        
+        .chart-card h2 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+        }
+        
+        .performance-item {
+            margin-bottom: 16px;
+        }
+        
+        .performance-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+        
+        .performance-bar {
+            background: #0f172a;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .performance-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s;
+        }
+        
+        .footer {
+            text-align: center;
+            color: #64748b;
+            font-size: 12px;
+            padding: 16px;
+            border-top: 1px solid #1e293b;
+            margin-top: 2rem;
+        }
+        
+        .success { color: #10b981; }
+        .error { color: #ef4444; }
+        
+        .flatpickr-calendar {
+            background: #1a2332 !important;
+            border: 1px solid #334155 !important;
+        }
+        
+        .flatpickr-months {
+            background: #1a2332 !important;
+        }
+        
+        .flatpickr-month {
+            background: #1a2332 !important;
+            color: #f1f5f9 !important;
+        }
+        
+        .flatpickr-weekdays {
+            background: #0f172a !important;
+        }
+        
+        .flatpickr-weekday {
+            color: #94a3b8 !important;
+        }
+        
+        .flatpickr-day {
+            color: #f1f5f9 !important;
+        }
+        
+        .flatpickr-day.selected {
+            background: #06b6d4 !important;
+            border-color: #06b6d4 !important;
+        }
+        
+        .flatpickr-day:hover {
+            background: #334155 !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div>
+                <h1>WASH HUB LUNGOMARE</h1>
+                <p>Business Intelligence Dashboard</p>
+            </div>
+            <div class="controls">
+                <label>Seleziona Data:</label>
+                <input type="text" id="datePicker" placeholder="Seleziona data">
+                <button onclick="loadDataByDate()">Carica</button>
+            </div>
+        </div>
+
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-label">💰 Ricavi Totali</div>
+                <div class="kpi-value color-cyan" id="entrate">€0,00</div>
+                <div class="kpi-subtext">Entrate totali</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-label">📤 Uscite Totali</div>
+                <div class="kpi-value color-red" id="uscite">€0,00</div>
+                <div class="kpi-subtext">Costi operativi</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-label">📈 Utile Netto</div>
+                <div class="kpi-value color-green" id="utile">€0,00</div>
+                <div class="kpi-subtext" id="margine-text">Margine 0%</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-label">🚗 Lavaggio</div>
+                <div class="kpi-value color-orange" id="lavaggio">€0,00</div>
+                <div class="kpi-subtext">Entrate</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-label">🅿️ Parcheggio</div>
+                <div class="kpi-value color-purple" id="parcheggio">€0,00</div>
+                <div class="kpi-subtext">Entrate</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-label">⚠️ Sospesi</div>
+                <div class="kpi-value color-yellow" id="sospesi">€0,00</div>
+                <div class="kpi-subtext">Da riscuotere</div>
+            </div>
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h2>Entrate vs Uscite</h2>
+                <div class="chart-container">
+                    <canvas id="mainChart"></canvas>
+                </div>
+            </div>
+
+            <div class="chart-card">
+                <h2>Performance</h2>
+                <div class="performance-item">
+                    <div class="performance-label">
+                        <span style="color: #94a3b8;">Lavaggio</span>
+                        <span class="color-orange" id="margine-lavaggio">0%</span>
+                    </div>
+                    <div class="performance-bar">
+                        <div class="performance-bar-fill color-orange" id="bar-lavaggio" style="width: 0%;"></div>
+                    </div>
+                </div>
+                <div class="performance-item">
+                    <div class="performance-label">
+                        <span style="color: #94a3b8;">Parcheggio</span>
+                        <span class="color-purple" id="margine-parcheggio">0%</span>
+                    </div>
+                    <div class="performance-bar">
+                        <div class="performance-bar-fill color-purple" id="bar-parcheggio" style="width: 0%;"></div>
+                    </div>
+                </div>
+                <div class="performance-item">
+                    <div class="performance-label">
+                        <span style="color: #94a3b8;">Totale</span>
+                        <span class="color-green" id="margine-totale">0%</span>
+                    </div>
+                    <div class="performance-bar">
+                        <div class="performance-bar-fill color-green" id="bar-totale" style="width: 0%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer" id="footer">
+            Dashboard in tempo reale • Seleziona una data per visualizzare i dati
+        </div>
+    </div>
+
+    <script>
+        const PRIMA_NOTA_ID = '1ctYH5gMGfqsg3TBbvfaf8QDtC8pIRletZBuPNIalzGI';
+        let allData = [];
+        let chart = null;
+
+        // Inizializza il calendario
+        flatpickr("#datePicker", {
+            mode: "range",
+            dateFormat: "d/m/Y",
+            locale: "it"
+        });
+
+        // Carica dati all'apertura
+        window.addEventListener('load', () => {
+            loadAllData();
+        });
+
+        async function loadAllData() {
+            try {
+                document.getElementById('footer').innerHTML = '<span class="success">⏳ Caricamento dati...</span>';
+                
+                const url = `https://docs.google.com/spreadsheets/d/${PRIMA_NOTA_ID}/export?format=csv`;
+                const response = await fetch(url);
+                const csv = await response.text();
+                
+                const lines = csv.split('\n');
+                const headers = lines[0].split(',').map(h => h.trim().toUpperCase());
+                
+                let idxData = -1, idxCentro = -1, idxEntrata = -1, idxUscite = -1, idxSospeso = -1;
+                for (let i = 0; i < headers.length; i++) {
+                    if (headers[i].includes('DATA')) idxData = i;
+                    if (headers[i].includes('CENTRO')) idxCentro = i;
+                    if (headers[i].includes('ENTRATA')) idxEntrata = i;
+                    if (headers[i].includes('USCITE')) idxUscite = i;
+                    if (headers[i].includes('SOSPESO')) idxSospeso = i;
+                }
+                
+                allData = [];
+                for (let i = 1; i < lines.length; i++) {
+                    if (!lines[i].trim()) continue;
+                    
+                    const values = lines[i].split(',').map(v => v.trim());
+                    allData.push({
+                        data: values[idxData] || '',
+                        centro: values[idxCentro] || '',
+                        entrata: parseFloat((values[idxEntrata] || '').replace(/[€\s,]/g, '.')) || 0,
+                        uscite: parseFloat((values[idxUscite] || '').replace(/[€\s,]/g, '.')) || 0,
+                        sospeso: parseFloat((values[idxSospeso] || '').replace(/[€\s,]/g, '.')) || 0
+                    });
+                }
+                
+                loadDataByDate();
+                document.getElementById('footer').innerHTML = '<span class="success">✅ Dati caricati • Seleziona una data</span>';
+            } catch (error) {
+                document.getElementById('footer').innerHTML = '<span class="error">❌ Errore: ' + error.message + '</span>';
+            }
+        }
+
+        function loadDataByDate() {
+            const datePicker = document.getElementById('datePicker').value;
+            let filteredData = allData;
+            
+            if (datePicker) {
+                const dates = datePicker.split(' to ');
+                const startDate = dates[0].split('/').reverse().join('-');
+                const endDate = dates.length > 1 ? dates[1].split('/').reverse().join('-') : startDate;
+                
+                filteredData = allData.filter(item => {
+                    const itemDate = item.data.split('/').reverse().join('-');
+                    return itemDate >= startDate && itemDate <= endDate;
+                });
+            }
+            
+            updateDashboard(filteredData);
+        }
+
+        function updateDashboard(data) {
+            let lavaggoEntrate = 0, lavaggoUscite = 0;
+            let parcheggioEntrate = 0, parcheggioUscite = 0;
+            let sospesiTot = 0;
+            
+            data.forEach(row => {
+                const centro = row.centro.toUpperCase();
+                
+                if (centro.includes('LAVAGGIO')) {
+                    lavaggoEntrate += row.entrata;
+                    lavaggoUscite += row.uscite;
+                } else if (centro.includes('PARCHEGGIO') || centro.includes('ABBONAMENTO')) {
+                    parcheggioEntrate += row.entrata;
+                    parcheggioUscite += row.uscite;
+                }
+                
+                sospesiTot += row.sospeso;
+            });
+            
+            const entraateTot = lavaggoEntrate + parcheggioEntrate;
+            const usciteTot = lavaggoUscite + parcheggioUscite;
+            const utileNetto = entraateTot - usciteTot;
+            const margine = entraateTot > 0 ? ((utileNetto / entraateTot) * 100).toFixed(1) : 0;
+            
+            const margineLavaggio = lavaggoEntrate > 0 ? ((lavaggoEntrate - lavaggoUscite) / lavaggoEntrate * 100).toFixed(1) : 0;
+            const margineParcheggio = parcheggioEntrate > 0 ? ((parcheggioEntrate - parcheggioUscite) / parcheggioEntrate * 100).toFixed(1) : 0;
+            
+            document.getElementById('entrate').textContent = '€' + entraateTot.toFixed(2).replace('.', ',');
+            document.getElementById('uscite').textContent = '€' + usciteTot.toFixed(2).replace('.', ',');
+            document.getElementById('utile').textContent = '€' + utileNetto.toFixed(2).replace('.', ',');
+            document.getElementById('margine-text').textContent = 'Margine ' + margine + '%';
+            document.getElementById('lavaggio').textContent = '€' + lavaggoEntrate.toFixed(2).replace('.', ',');
+            document.getElementById('parcheggio').textContent = '€' + parcheggioEntrate.toFixed(2).replace('.', ',');
+            document.getElementById('sospesi').textContent = '€' + sospesiTot.toFixed(2).replace('.', ',');
+            
+            document.getElementById('margine-lavaggio').textContent = margineLavaggio + '%';
+            document.getElementById('margine-parcheggio').textContent = margineParcheggio + '%';
+            document.getElementById('margine-totale').textContent = margine + '%';
+            
+            document.getElementById('bar-lavaggio').style.width = margineLavaggio + '%';
+            document.getElementById('bar-parcheggio').style.width = margineParcheggio + '%';
+            document.getElementById('bar-totale').style.width = margine + '%';
+            
+            drawChart(lavaggoEntrate, lavaggoUscite, parcheggioEntrate, parcheggioUscite);
+            document.getElementById('footer').innerHTML = '<span class="success">✅ Dashboard aggiornata</span> • ' + new Date().toLocaleString('it-IT');
+        }
+
+        function drawChart(lavaggoE, lavaggoU, parchegE, parchegU) {
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            
+            if (chart) {
+                chart.destroy();
+            }
+            
+            chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Lavaggio', 'Parcheggio'],
+                    datasets: [
+                        {
+                            label: 'Entrate',
+                            data: [lavaggoE, parchegE],
+                            backgroundColor: '#06b6d4',
+                            borderRadius: 6
+                        },
+                        {
+                            label: 'Uscite',
+                            data: [lavaggoU, parchegU],
+                            backgroundColor: '#ef4444',
+                            borderRadius: 6
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: '#f1f5f9' }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: '#94a3b8' },
+                            grid: { color: '#334155' }
+                        },
+                        y: {
+                            ticks: { color: '#94a3b8' },
+                            grid: { color: '#334155' }
+                        }
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
