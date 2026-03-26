@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WASH HUB LUNGOMARE - Dashboard</title>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #0f172a;
+            color: #f1f5f9;
+            padding: 2rem;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #1e293b;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #06b6d4;
+            margin-bottom: 0.5rem;
+        }
+        
+        .header p {
+            color: #64748b;
+            font-size: 13px;
+        }
+        
+        .header-info {
+            background: #1a2332;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 8px 16px;
+            font-size: 12px;
+            color: #94a3b8;
+        }
+        
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+            margin-bottom: 2rem;
+        }
+        
+        .kpi-card {
+            background: #1a2332;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        
+        .kpi-label {
+            color: #64748b;
+            font-size: 12px;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .kpi-value {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .kpi-subtext {
+            color: #475569;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+        
+        .color-cyan { color: #06b6d4; }
+        .color-red { color: #ef4444; }
+        .color-green { color: #10b981; }
+        .color-orange { color: #f97316; }
+        .color-purple { color: #8b5cf6; }
+        .color-yellow { color: #f59e0b; }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 16px;
+            margin-bottom: 2rem;
+        }
+        
+        .chart-card {
+            background: #1a2332;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 20px;
+        }
+        
+        .chart-card h2 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #f1f5f9;
+        }
+        
+        .performance-item {
+            margin-bottom: 16px;
+        }
+        
+        .performance-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+        
+        .performance-bar {
+            background: #0f172a;
+            height: 8px;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .performance-bar-fill {
+            height: 100%;
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+        
+        .button {
+            background: #06b6d4;
+            color: #000;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 2rem;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .button:hover {
+            background: #0891b2;
+        }
+        
+        .footer {
+            text-align: center;
+            color: #64748b;
+            font-size: 12px;
+            padding: 16px;
+            border-top: 1px solid #1e293b;
+            margin-top: 2rem;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #f1f5f9;
+        }
+        
+        .error {
+            background: #7f1d1d;
+            border: 1px solid #dc2626;
+            border-radius: 8px;
+            padding: 16px;
+            color: #fca5a5;
+            margin: 2rem 0;
+        }
+        
+        @media (max-width: 1024px) {
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <div>
+                <h1>WASH HUB LUNGOMARE</h1>
+                <p>Business Intelligence Dashboard</p>
+            </div>
+            <div class="header-info" id="timestamp">📊 Caricamento dati...</div>
+        </div>
+
+        <!-- KPI CARDS -->
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-label">💰 Ricavi Totali</div>
+                <div class="kpi-value color-cyan" id="entrate">€0,00</div>
+                <div class="kpi-subtext">Entrate totali</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-label">📤 Uscite Totali</div>
+                <div class="kpi-value color-red" id="uscite">€0,00</div>
+                <div class="kpi-subtext">Costi operativi</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-label">📈 Utile Netto</div>
+                <div class="kpi-value color-green" id="utile">€0,00</div>
+                <div class="kpi-subtext" id="margine-text">Margine 0%</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-label">🚗 Lavaggio</div>
+                <div class="kpi-value color-orange" id="lavaggio">€0,00</div>
+                <div class="kpi-subtext">Entrate servizio</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-label">🅿️ Parcheggio</div>
+                <div class="kpi-value color-purple" id="parcheggio">€0,00</div>
+                <div class="kpi-subtext">Entrate parcheggio</div>
+            </div>
+
+            <div class="kpi-card">
+                <div class="kpi-label">⚠️ Sospesi</div>
+                <div class="kpi-value color-yellow" id="sospesi">€0,00</div>
+                <div class="kpi-subtext">Da riscuotere</div>
+            </div>
+        </div>
+
+        <!-- CHARTS -->
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h2>Dati Caricamento</h2>
+                <div id="chart_div" style="height: 300px;"></div>
+            </div>
+
+            <div class="chart-card">
+                <h2>Performance</h2>
+                <div class="performance-item">
+                    <div class="performance-label">
+                        <span style="color: #94a3b8;">Lavaggio</span>
+                        <span class="color-orange" id="margine-lavaggio">0%</span>
+                    </div>
+                    <div class="performance-bar">
+                        <div class="performance-bar-fill color-orange" id="bar-lavaggio" style="width: 0%;"></div>
+                    </div>
+                </div>
+                <div class="performance-item">
+                    <div class="performance-label">
+                        <span style="color: #94a3b8;">Parcheggio</span>
+                        <span class="color-purple" id="margine-parcheggio">0%</span>
+                    </div>
+                    <div class="performance-bar">
+                        <div class="performance-bar-fill color-purple" id="bar-parcheggio" style="width: 0%;"></div>
+                    </div>
+                </div>
+                <div class="performance-item">
+                    <div class="performance-label">
+                        <span style="color: #94a3b8;">Totale</span>
+                        <span class="color-green" id="margine-totale">0%</span>
+                    </div>
+                    <div class="performance-bar">
+                        <div class="performance-bar-fill color-green" id="bar-totale" style="width: 0%;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- BUTTON -->
+        <button class="button" onclick="fetchData()">🔄 Aggiorna Dati</button>
+
+        <!-- FOOTER -->
+        <div class="footer" id="footer">
+            Dashboard in tempo reale • Powered by Claude AI
+        </div>
+    </div>
+
+    <script>
+        // ID dei Google Sheets
+        const PRIMA_NOTA_ID = '1ctYH5gMGfqsg3TBbvfaf8QDtC8pIRletZBuPNIalzGI';
+        const SHEET_NAME = 'FEBBRAIO 2026';
+
+        google.charts.load('current', {'packages':['corechart']});
+
+        async function fetchData() {
+            try {
+                // URL Google Visualization API
+                const query = new google.visualization.Query(
+                    `https://docs.google.com/spreadsheets/d/${PRIMA_NOTA_ID}/gviz/tq?sheet=${SHEET_NAME}`
+                );
+
+                query.send(function(response) {
+                    if (response.isError()) {
+                        console.error('Error:', response.getMessage());
+                        updateError('Errore caricamento dati: ' + response.getMessage());
+                        return;
+                    }
+
+                    const data = response.getDataTable();
+                    const rows = data.getNumberOfRows();
+                    const cols = data.getNumberOfColumns();
+
+                    let lavaggoEntrate = 0, lavaggoUscite = 0;
+                    let parcheggioEntrate = 0, parcheggioUscite = 0;
+                    let sospesiTot = 0;
+
+                    // Trova indici colonne
+                    let idxCentro = -1, idxEntrata = -1, idxUscite = -1, idxSospeso = -1;
+                    
+                    for (let i = 0; i < cols; i++) {
+                        const colName = data.getColumnLabel(i).toUpperCase();
+                        if (colName.includes('CENTRO')) idxCentro = i;
+                        if (colName.includes('ENTRATA')) idxEntrata = i;
+                        if (colName.includes('USCITE')) idxUscite = i;
+                        if (colName.includes('SOSPESO')) idxSospeso = i;
+                    }
+
+                    // Leggi righe
+                    for (let i = 0; i < rows; i++) {
+                        const centro = (data.getValue(i, idxCentro) || '').toString().toUpperCase();
+                        const entrata = parseFloat((data.getValue(i, idxEntrata) || '').toString().replace(/[€\s,]/g, '.')) || 0;
+                        const uscite = parseFloat((data.getValue(i, idxUscite) || '').toString().replace(/[€\s,]/g, '.')) || 0;
+                        const sospeso = parseFloat((data.getValue(i, idxSospeso) || '').toString().replace(/[€\s,]/g, '.')) || 0;
+
+                        if (centro.includes('LAVAGGIO')) {
+                            lavaggoEntrate += entrata;
+                            lavaggoUscite += uscite;
+                        } else if (centro.includes('PARCHEGGIO') || centro.includes('ABBONAMENTO')) {
+                            parcheggioEntrate += entrata;
+                            parcheggioUscite += uscite;
+                        }
+                        
+                        sospesiTot += sospeso;
+                    }
+
+                    // Calcoli
+                    const entraateTot = lavaggoEntrate + parcheggioEntrate;
+                    const usciteTot = lavaggoUscite + parcheggioUscite;
+                    const utileNetto = entraateTot - usciteTot;
+                    const margine = entraateTot > 0 ? ((utileNetto / entraateTot) * 100).toFixed(1) : 0;
+
+                    const margineLavaggio = lavaggoEntrate > 0 ? 
+                        ((lavaggoEntrate - lavaggoUscite) / lavaggoEntrate * 100).toFixed(1) : 0;
+                    const margineParcheggio = parcheggioEntrate > 0 ? 
+                        ((parcheggioEntrate - parcheggioUscite) / parcheggioEntrate * 100).toFixed(1) : 0;
+
+                    // Aggiorna UI
+                    document.getElementById('entrate').innerText = '€' + entraateTot.toFixed(2).replace('.', ',');
+                    document.getElementById('uscite').innerText = '€' + usciteTot.toFixed(2).replace('.', ',');
+                    document.getElementById('utile').innerText = '€' + utileNetto.toFixed(2).replace('.', ',');
+                    document.getElementById('margine-text').innerText = 'Margine ' + margine + '%';
+                    document.getElementById('lavaggio').innerText = '€' + lavaggoEntrate.toFixed(2).replace('.', ',');
+                    document.getElementById('parcheggio').innerText = '€' + parcheggioEntrate.toFixed(2).replace('.', ',');
+                    document.getElementById('sospesi').innerText = '€' + sospesiTot.toFixed(2).replace('.', ',');
+                    
+                    document.getElementById('margine-lavaggio').innerText = margineLavaggio + '%';
+                    document.getElementById('margine-parcheggio').innerText = margineParcheggio + '%';
+                    document.getElementById('margine-totale').innerText = margine + '%';
+
+                    document.getElementById('bar-lavaggio').style.width = margineLavaggio + '%';
+                    document.getElementById('bar-parcheggio').style.width = margineParcheggio + '%';
+                    document.getElementById('bar-totale').style.width = margine + '%';
+
+                    document.getElementById('timestamp').innerText = '📊 ' + new Date().toLocaleString('it-IT');
+                    document.getElementById('footer').innerHTML = '✅ Dashboard aggiornata • ' + new Date().toLocaleString('it-IT');
+
+                    // Disegna chart
+                    const chartData = google.visualization.arrayToDataTable([
+                        ['Categoria', 'Entrate', 'Uscite'],
+                        ['Lavaggio', lavaggoEntrate, lavaggoUscite],
+                        ['Parcheggio', parcheggioEntrate, parcheggioUscite]
+                    ]);
+
+                    const options = {
+                        title: '',
+                        curveType: 'function',
+                        legend: { position: 'bottom' },
+                        hAxis: { gridlines: { color: '#333' } },
+                        vAxis: { gridlines: { color: '#333' } },
+                        backgroundColor: '#0f172a',
+                        titleTextStyle: { color: '#f1f5f9' },
+                        legendTextStyle: { color: '#94a3b8' },
+                        hAxis: { textStyle: { color: '#94a3b8' } },
+                        vAxis: { textStyle: { color: '#94a3b8' } }
+                    };
+
+                    const chart = new google.visualization.ColumnChart(document.getElementById('chart_div'));
+                    chart.draw(chartData, options);
+
+                });
+            } catch (error) {
+                console.error('Fetch Error:', error);
+                updateError('Errore: ' + error.message);
+            }
+        }
+
+        function updateError(msg) {
+            document.getElementById('footer').innerHTML = '❌ ' + msg;
+        }
+
+        // Carica i dati al caricamento della pagina
+        fetchData();
+        
+        // Ricarica ogni 5 minuti
+        setInterval(fetchData, 5 * 60 * 1000);
+    </script>
+</body>
+</html>
